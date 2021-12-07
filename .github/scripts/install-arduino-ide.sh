@@ -114,6 +114,9 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> [extra-options]
 		-build-cache "$ARDUINO_CACHE_DIR" \
 		-build-path "$ARDUINO_BUILD_DIR" \
 		$win_opts $xtra_opts "$sketch"
+
+  echo $ARDUINO_BUILD_DIR
+  ls $ARDUINO_BUILD_DIR
 }
 
 function count_sketches() # count_sketches <examples-path> <target-mcu>
