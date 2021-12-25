@@ -16,6 +16,8 @@ jobs:
   Linux:
     name: Build ESP32 examples
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/apache/incubator-nuttx/apache-nuttx-ci-linux
 
     steps:
       - name: Checkout Repository
@@ -27,7 +29,7 @@ jobs:
           fqbn: 'esp32:esp32:esp32'
           platforms: |
             - name: esp32:esp32
-              source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+              source-url: https://github.com/espressif/arduino-esp32/releases/download/2.0.2/esp32-2.0.2.zip
           verbose: true
           sketch-paths: |
             - libraries/ESP32/examples/Timer/RepeatTimer
