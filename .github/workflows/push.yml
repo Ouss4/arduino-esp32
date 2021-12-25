@@ -1,58 +1,86 @@
-name: ESP32 Arduino CI
+name: Build Examples
 
 on:
+  pull_request:
   push:
     branches:
-    - master
-    - release/*
-  pull_request:
+      - master
+    tags:
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  
-  # Ubuntu
-  build-arduino-linux:
-    name: Arduino ${{ matrix.chunk }} on ubuntu-latest
+  Linux:
+    name: Build ${{ matrix.chunk }} on Ubuntu for ${{ matrix.fqbn }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-    
+        chunk: [0, 1, 2, 3]
+        fqbn: ['esp32:esp32:esp32', 'esp32:esp32:esp32s2', 'esp32:esp32:esp32c3']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      run: bash ./.github/scripts/on-push.sh ${{ matrix.chunk }} 15
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-  # Windows and MacOS
-  build-arduino-win-mac:
-    name: Arduino on ${{ matrix.os }}
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+ 
+      - name: install pyserial
+        run: pip3 install pyserial
+
+      - name: Prepare Sketches
+        id: prep
+        run: |
+          bash .github/scripts/getsketches.sh ${{ matrix.fqbn }} ${{ matrix.chunk }} 15
+
+          echo 'PATHS<<EOF' >> $GITHUB_ENV
+          cat build_list.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+          rm -rf build_list.txt
+
+      - name: Build sketches
+        uses: ouss4/compile-sketches@cbfba7fd76bbd6987e75ecd9ec18d2c63615ca53
+        with:
+          fqbn: ${{ matrix.fqbn }}
+          platforms: |
+            - name: esp32:esp32
+              source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          sketch-paths: |
+            ${{ env.PATHS }}
+
+  win-mac:
+    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, macOS-latest]
-    
+        os: [Windows-latest, macOS-latest]
+        fqbn: ['esp32:esp32:esp32', 'esp32:esp32:esp32s2', 'esp32:esp32:esp32c3']
+  
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      run: bash ./.github/scripts/on-push.sh
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+  
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+  
+      - name: install pyserial
+        run: pip3 install pyserial
 
-  # PlatformIO on Windows, Ubuntu and Mac
-  build-platformio:
-    name: PlatformIO on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Build Sketches
-      run: bash ./.github/scripts/on-push.sh 1 1 #equal and non-zero to trigger PIO
+      - name: Build sketches
+        uses: ouss4/compile-sketches@cbfba7fd76bbd6987e75ecd9ec18d2c63615ca53
+        with:
+          fqbn: ${{ matrix.fqbn }}
+          platforms: |
+            - name: esp32:esp32
+              source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          sketch-paths: |
+            - libraries/WiFi/examples/WiFiClient
+            - libraries/WiFiClientSecure/examples/WiFiClientSecure
+
