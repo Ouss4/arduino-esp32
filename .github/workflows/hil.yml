@@ -21,12 +21,23 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          path: repo
 
       - name: Prepare Sketches
         id: prep-sketches
         run: |
-          SKETCHES=$(jq -c -n '$ARGS.positional' --args `find tests -mindepth 1 -maxdepth 1 -type d | cut -d"/" -f2`)
+          SKETCHES=$(jq -c -n '$ARGS.positional' --args `find repo/tests -mindepth 1 -maxdepth 1 -type d | cut -d"/" -f3`)
           echo "::set-output name=sketches::${SKETCHES}"
+
+      - name: Tar repository
+        run: tar zcf repo.tar.gz repo
+
+      - name: Upload repo's archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: repo-archive
+          path: repo.tar.gz
 
   Build:
     needs: prep_sketches
@@ -38,8 +49,14 @@ jobs:
         sketches: ${{fromJson(needs.prep_sketches.outputs.sketches)}}
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Download Source Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: repo-archive
+          path: .
+
+      - name: Extract repositroy
+        run: tar zxf repo.tar.gz --strip-components=1
 
       - name: Get target
         run: echo "chip=$(echo ${{matrix.fqbn}} | cut -d":" -f3)" >> $GITHUB_ENV
@@ -78,8 +95,14 @@ jobs:
         sketches: ${{fromJson(needs.prep_sketches.outputs.sketches)}}
 
     steps:
-       - name: Checkout repository
-         uses: actions/checkout@v2
+       - name: Download Source Artifact
+         uses: actions/download-artifact@v2
+         with:
+           name: repo-archive
+           path: .
+
+       - name: Extract repositroy
+         run: tar zxf repo.tar.gz --strip-components=1
 
        - name: Get target
          run: echo "chip=$(echo ${{matrix.fqbn}} | cut -d":" -f3)" >> $GITHUB_ENV
