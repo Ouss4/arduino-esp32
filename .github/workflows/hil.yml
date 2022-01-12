@@ -43,6 +43,10 @@ jobs:
     needs: prep_sketches
     name: Build ${{matrix.sketches}} for ${{matrix.fqbn}}
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ouss4/arduino-esp32/esp32-toolchains:latest
+      volumes:
+        - /home/runner/work/_actions/arduino/compile-sketches/v1:/home/runner/work/_actions/arduino/compile-sketches/v1
     strategy:
       matrix:
         fqbn: ['esp32:esp32:esp32', 'esp32:esp32:esp32s2', 'esp32:esp32:esp32c3']
@@ -65,6 +69,7 @@ jobs:
         uses: arduino/compile-sketches@v1
         with:
           fqbn: ${{matrix.fqbn}}
+          verbose: true
           platforms: |
             - name: esp32:esp32
               source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
@@ -86,9 +91,6 @@ jobs:
     needs: [prep_sketches, Build]
     name: Test ${{matrix.sketches}} for ${{matrix.fqbn}}
     runs-on: ubuntu-latest
-    env:
-      PYTHON_VERSION: 3.10.1
-      PYENV_VERSION: v2.2.3
     strategy:
       matrix:
         fqbn: ['esp32:esp32:esp32', 'esp32:esp32:esp32s2', 'esp32:esp32:esp32c3']
