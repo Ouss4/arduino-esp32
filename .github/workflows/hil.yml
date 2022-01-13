@@ -46,6 +46,10 @@ jobs:
     container:
       image: ghcr.io/ouss4/arduino-esp32/esp32-toolchains:latest
       volumes:
+        # Arduino's compile-sketches uses ${{github.action_path}} to get its
+        # setup script.  This path is not available to our image and needs to be
+        # mounted.
+
         - /home/runner/work/_actions/arduino/compile-sketches/v1:/home/runner/work/_actions/arduino/compile-sketches/v1
     strategy:
       matrix:
@@ -72,7 +76,7 @@ jobs:
           verbose: true
           platforms: |
             - name: esp32:esp32
-              source-url: https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+              source-path: "."
           cli-compile-flags: |
             - --build-path
             - tests/${{matrix.sketches}}/build
