@@ -112,7 +112,7 @@ function build_sketch(){ # build_sketch <fqbn> <path-to-ino> [extra-options]
         -hardware "$ARDUINO_USR_PATH/hardware" \
         -libraries "$ARDUINO_USR_PATH/libraries" \
         -build-cache "$ARDUINO_CACHE_DIR" \
-        -build-path "$ARDUINO_BUILD_DIR" \
+        -build-path "$build_dir" \
         $win_opts $xtra_opts "$sketch"
 }
 
