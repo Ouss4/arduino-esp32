@@ -79,4 +79,4 @@ jobs:
            ~/.pyenv/versions/${{env.PYTHON_VERSION}}/bin/python -m venv test_venv
            source test_venv/bin/activate
 
-           pytest tests -k test_${{matrix.sketches}}
+           bash .github/scripts/test.sh ${{matrix.chip}} ${{matrix.chunks}} ${{env.MAX_CHUNKS}}
