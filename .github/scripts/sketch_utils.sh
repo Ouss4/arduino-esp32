@@ -32,6 +32,10 @@ function build_sketch(){ # build_sketch <ide_path> <user_path> <fqbn> <path-to-i
         $win_opts $xtra_opts "$sketch"
 }
 
+function test_sketch(){
+  pytest tests -k test_$2
+}
+
 function count_sketches(){ # count_sketches <path> <target>
     local path=$1
     local target=$2
@@ -65,19 +69,19 @@ function count_sketches(){ # count_sketches <path> <target>
     return $sketchnum
 }
 
-function build_sketches(){ # build_sketches <ide_path> <user_path> <fqbn> <target> <path> <chunk> <total-chunks> [extra-options]
-    local ide_path=$1
-    local usr_path=$2
-    local fqbn=$3
-    local target=$4
-    local path=$5
-    local chunk_idex=$6
-    local chunks_num=$7
-    local xtra_opts=$8
+function chunk_op(){ # chunk_op <op> <ide_path> <user_path> <fqbn> <target> <path> <chunk> <total-chunks> [extra-options]
+    local op=$1
+    local ide_path=$2
+    local usr_path=$3
+    local fqbn=$4
+    local target=$5
+    local path=$6
+    local chunk_idex=$7
+    local chunks_num=$8
+    local xtra_opts=$9
 
-    if [ "$#" -lt 7 ]; then
+    if [ "$#" -lt 8 ]; then
         echo "ERROR: Illegal number of parameters"
-        echo "USAGE: ${0} sbuild <ide_path> <user_path> <fqbn> <target> <path> [<chunk> <total-chunks>] [extra-options]"
         return 1
     fi
 
@@ -140,8 +144,12 @@ function build_sketches(){ # build_sketches <ide_path> <user_path> <fqbn> <targe
             continue
         fi
         echo ""
-        echo "Building Sketch Index $(($sketchnum - 1)) - $sketchdirname"
-        build_sketch "$ide_path" "$usr_path" "$fqbn" "$sketch" "$xtra_opts"
+        echo "Sketch Index $(($sketchnum - 1)) - $sketchdirname"
+        if [ "$op" = "build" ]; then
+          build_sketch "$ide_path" "$usr_path" "$fqbn" "$sketch" "$xtra_opts"
+        elif [ "$op" = "test" ]; then
+          test_sketch $target $sketchdirname
+        fi
         local result=$?
         if [ $result -ne 0 ]; then
             return $result
@@ -174,9 +182,13 @@ case "$cmd" in
     build_sketch $*
     ;;
   "sbuild")
-    build_sketches $*
+    chunk_op "build" $*
+    ;;
+  "test")
+    chunk_op "test" $*
     ;;
   *)
+
     echo "ERROR: Unrecognized command"
     echo "$USAGE"
     exit 2
