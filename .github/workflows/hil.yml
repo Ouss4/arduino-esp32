@@ -40,7 +40,7 @@ jobs:
   Test:
     needs: Build
     name: ${{matrix.chip}}-Test#${{matrix.chunks}}
-    runs-on: ESP32
+    runs-on: ubuntu-latest
     env:
       PYTHON_VERSION: 3.10.1
       PYENV_VERSION: v2.2.3
