@@ -28,5 +28,7 @@ BUILD_SKETCHES="${SCRIPTS_DIR}/sketch_utils.sh chunk_build"
 source ${SCRIPTS_DIR}/install-arduino-ide.sh
 source ${SCRIPTS_DIR}/install-arduino-core-esp32.sh
 
-${BUILD_SKETCHES} "${fqbn}" "$target" "$PWD/tests" "$chunk_index" "$chunk_max"
+args="$ARDUINO_IDE_PATH $ARDUINO_USR_PATH"
+args+=" \"$fqbn\"  $target $PWD/tests $chunk_index $chunk_max"
+${BUILD_SKETCHES} ${args}
 
